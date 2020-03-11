@@ -1,0 +1,7 @@
+{
+	"name": "recipe-lib",
+	"displayName": "[sky]Recipe Lib[]",
+	"author": "DeltaNedas",
+	"description": "Library for other mods, adds nothing on its own.",
+	"version": "1.0.0"
+}
