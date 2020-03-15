@@ -3,8 +3,8 @@
 print("### Loaded example, make sure to disable before committing!");
 
 // Code in readme below
-const recipeLib = this.global.recipeLib;
-const factory = recipeLib.extend(GenericSmelter, "scrap-factory", {
+const recipeLib = require("recipe-lib/wrapper");
+const factory = recipeLib.extend(GenericSmelter, GenericCrafter.GenericCrafterEntity, "scrap-factory", {
 	crafted(tile, i) {
 		const recipe = recipes[i];
 		printf("Scrap Factory crafted " + (recipe.output.item || recipe.output.liquid));
@@ -23,6 +23,7 @@ const factory = recipeLib.extend(GenericSmelter, "scrap-factory", {
 		time: 15 // ... but 1.5x slower
 	}
 ]);
+print("Factory recipes are " + factory.recipes)
 factory.category = Category.crafting;
 factory.buildVisibility = BuildVisibility.sandboxOnly;
 factory.localizedName = "Scrap Factory";

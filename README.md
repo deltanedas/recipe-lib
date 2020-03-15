@@ -22,7 +22,7 @@ Any of the icons on one row will set the same recipe.
 
 # Functions, fields and types
 
-## `recipeLib#extend(Base extends Block, String name, Object def, Recipe[] recipes)`
+## `recipeLib#extend(Base extends Block, Entity extends TileEntity String name, Object def, Recipe[] recipes)`
 	Like vanilla `extendContent(Base, name, def)`, but it also adds the multi recipe logic.
 	If `def` is not `undefined` its functions are added **after** the base definition.
 	It will validate the recipes array which must contain at least 1 recipe.
@@ -61,7 +61,7 @@ Any of the icons on one row will set the same recipe.
 See example code below:
 ```js
 const recipeLib = this.global.recipeLib;
-const factory = recipeLib.extend(GenericSmelter, "scrap-factory", {
+const factory = recipeLib.extend(GenericSmelter, GenericCrafter.GenericCrafterEntity, "scrap-factory", {
 	crafted(tile, i) {
 		const recipe = recipes[i];
 		printf("Scrap Factory crafted " + (recipe.output.item || recipe.output.liquid));
