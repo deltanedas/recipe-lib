@@ -157,6 +157,7 @@ module.exports = {
 			}
 		},
 
+		// FIXME: black background around outputs texture
 		addOutputButton(tile, recipe, output, table) {
 			var button = table.addImageButton(Tex.whiteui, Styles.clearToggleTransi, 24, run(() => Vars.control.input.frag.config.hideConfig())).get();
 			button.changed(run(() => tile.configure(button.isChecked() ? recipe : -1)));
@@ -164,7 +165,7 @@ module.exports = {
 			button.update(run(() => button.setChecked(recipe == tile.entity.recipes)));
 		},
 
-		addInputImage(tile, recipe, input, table) {
+		addInputImage(input, table) {
 			table.addImage(input.icon(Cicon.medium));
 		},
 
@@ -186,10 +187,10 @@ module.exports = {
 				/* Create input images */
 				table.addImage(Icon.left);
 				for (var i in recipe.input.items || []) {
-					this.addInputImage(tile, r, recipe.input.items[i].item, table);
+					this.addInputImage(recipe.input.items[i].item, table);
 				}
 				if (recipe.input.liquid) {
-					this.addInputImage(tile, r, recipe.input.liquid.liquid, table);
+					this.addInputImage(recipe.input.liquid.liquid, table);
 				}
 				table.row();
 			}
