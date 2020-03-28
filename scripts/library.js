@@ -1,74 +1,16 @@
+const defs = require("recipe-lib/defs");
+
 const DEFAULT_POWER = 1.0;
-
-const _common = {
-	update(tile) {
-		if (this.onUpdate !== undefined && !this.onUpdate(tile)) {
-			return;
-		}
-
-		const entity = tile.ent();
-		const recipe = this.recipes[entity.recipe];
-		const outputItem = recipe.output.item;
-		const outputLiquid = recipe.output.liquid;
-
-		if (entity.cons.valid()) {
-
-			entity.progress += this.getProgressIncrease(entity, recipe.craftTime);
-			entity.totalProgress += entity.delta();
-			entity.warmup = Mathf.lerpDelta(entity.warmup, 1, 0.02);
-
-			// Only create effects if needed
-			if (recipe.updateEffect !== null && recipe.updateEffect !== Fx.none && recipe.updateChance > 0) {
-				if(Mathf.chance(Time.delta() * recipe.updateChance)){
-					Effects.effect(recipe.updateEffect, entity.x + Mathf.range(this.size * 4), entity.y + Mathf.range(this.size * 4));
-				}
-			}
-		} else {
-			entity.warmup = Mathf.lerp(entity.warmup, 0, 0.02);
-		}
-
-		if (entity.progress >= 1) {
-			entity.cons.trigger();
-
-			if (outputItem !== undefined) {
-				this.useContent(tile, outputItem.item);
-				for (var i = 0; i < outputItem.amount; i++){
-					this.offloadNear(tile, outputItem.item);
-				}
-			}
-
-			if (outputLiquid !== undefined){
-				this.useContent(tile, outputLiquid.liquid);
-				this.handleLiquid(tile, tile, outputLiquid.liquid, outputLiquid.amount);
-			}
-
-			if (recipe.craftEffect !== undefined && recipe.craftEffect !== Fx.none) {
-				Effects.effect(recipe.craftEffect, tile.drawx(), tile.drawy());
-			}
-			entity.progress = 0;
-			if (this.crafted !== undefined) {
-				this.crafted(tile, entity.recipe);
-			}
-		}
-
-		if (outputItem !== undefined && tile.entity.timer.get(this.timerDump, this.dumpTime)) {
-			this.tryDump(tile, outputItem.item);
-		}
-
-		if (outputLiquid !== undefined) {
-			this.tryDumpLiquid(tile, outputLiquid.liquid);
-		}
-	}
-}
 
 function validateStack(input, Type, Stack, contentType) {
 	if (input !== undefined) {
 		if (typeof(input) == "string") {
-			const name, amount = input.match(/([a-z\-]+)(?:\/\d+)?/);
-			if (name === undefined) {
+			const match = input.match(/([a-z\-_]+)(?:\/(\d+?))?/);
+			if (match === null) {
 				throw "Invalid string for " + Stack + ": '" + input + "'";
 			}
 
+			const name = match[1], amount = match[2];
 			const item = Vars.content.getByName(contentType, name);
 			if (item === null) {
 				throw "Unknown item '" + name + "'";
@@ -130,22 +72,26 @@ function _validate(block, recipes) {
 
 		// Make life easier
 		block.hasPower = true;
-		if (recipe.input.items !== undefined) {
+		if (recipe.input.items || recipe.output.item) {
 			block.hasItems = true;
 		}
-		if (recipe.input.liquid !== undefined) {
+		if (recipe.input.liquid || recipe.output.liquid) {
 			block.hasLiquids = true;
 		}
+
+		recipe.updateEffect = recipe.updateEffect || Fx.none;
+		recipe.craftEffect = recipe.craftEffect || Fx.none;
+		recipe.updateChance = recipe.updateChance || 0.04;
 	}
 	return recipes;
 }
 
 function _extend(Base, Entity, name, def, recipes) {
-	const block = Object.create(_common);
+	const block = Object.create(defs.Block);
 	Object.assign(block, def || {}); // Merge def argument on top of default.
 
-	const ret = extendContent(Base, name, def);
-	const oldType = ret.entityType;
+	const ret = extendContent(Base, name, block);
+	ret.configurable = true;
 	ret.recipes = _validate(ret, recipes);
 	ret.entityType = prov(() => {
 		const ent = extend(Entity, defs.TileEntity);
@@ -161,7 +107,6 @@ function _extend(Base, Entity, name, def, recipes) {
 }
 
 module.exports = {
-	common: _common,
 	validate: _validate,
 	extend: _extend
 }

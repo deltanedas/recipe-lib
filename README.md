@@ -58,31 +58,27 @@ Any of the icons on one row will set the same recipe.
 	Like in JSON, you may define <type>Stacks with a String of "name/amount", or just "name" (not in JSON).
 	Additionally, if it just a <type> it will be treated as a stack of 1.
 
-See example code below:
+See example code below for how it works:
 ```js
-const recipeLib = this.global.recipeLib;
+const recipeLib = require("recipe-lib/library");
 const factory = recipeLib.extend(GenericSmelter, GenericCrafter.GenericCrafterEntity, "scrap-factory", {
 	crafted(tile, i) {
-		const recipe = recipes[i];
-		printf("Scrap Factory crafted " + (recipe.output.item || recipe.output.liquid));
+		const recipe = this.recipes[i];
+		print("Scrap Factory crafted " + (recipe.output.item || recipe.output.liquid));
 	}
 }, [ /* Recipes */
-	// Scrap to slag mode
-	{
-		input: {items: [Items.scrap]},
-		output: {item: Items.coal},
-		time: 30
-	},
-	// Scrap to slag mode
-	{
-		input: {items: [Items.scrap], power: 0.5}, // Make it 2x cheaper than a melter
-		output: {liquid: Liquids.slag},
-		time: 15 // ... but 1.5x slower
-	}
+// Scrap to slag mode
+{
+	input: {items: ["scrap/2"]},
+	output: {item: "coal"},
+	time: 30
+},
+// Scrap to slag mode
+{
+	input: {items: ["scrap"], power: 0.5}, // Make it 2x cheaper than a melter
+	output: {liquid: "slag"},
+	time: 15 // ... but 1.5x slower
+}
 ]);
-factory.category = Category.crafting;
-factory.buildVisibility = BuildVisibility.sandboxOnly;
-factory.localizedName = "Scrap Factory";
-factory.description = "Turns scrap into Coal, or melts it into slag.";
 ```
 (set LOAD_EXAMPLE in main.js to `true` to run it)
