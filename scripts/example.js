@@ -35,6 +35,12 @@ const factory = recipeLib.extend(GenericSmelter, GenericCrafter.GenericCrafterEn
 		input: {items: ["scrap"], power: 0.5}, // Make it 2x cheaper than a melter
 		output: {liquid: "slag"},
 		time: 15 // ... but 1.5x slower
+	},
+	// REMOVE
+	{
+		input: {items: ["copper/2", "coal/3"], liquid: "water/5"},
+		output: {item: "plastanium/5", liquid: "oil/3"},
+		time: 120
 	}
 ]);
 factory.category = Category.crafting;

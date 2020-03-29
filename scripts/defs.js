@@ -34,10 +34,10 @@ module.exports = {
 			}
 		},
 
-		trigger(){
+		trigger() {
 			const arr = ret.consumes.all();
 			for (var i in arr) {
-				arr.trigger(ent);
+				arr[i].trigger(ent);
 			}
 		},
 
@@ -74,10 +74,19 @@ module.exports = {
 	},
 	TileEntity: {
 		getRecipe() {
+			print("Recipe of " + this.tile + " is " + this._recipe)
 			return this._recipe;
 		},
 		setRecipe(set) {
+			print("Set recipe for " + this.tile + " to " + set)
 			this._recipe = set;
+		},
+
+		write(stream) {
+			this._recipe = stream.readByte();
+		},
+		read(stream) {
+			stream.writeByte(this._recipe);
 		},
 		_recipe: 0 // Index of `recipes` to craft
 	},
@@ -162,7 +171,7 @@ module.exports = {
 			var button = table.addImageButton(Tex.whiteui, Styles.clearToggleTransi, 24, run(() => Vars.control.input.frag.config.hideConfig())).get();
 			button.changed(run(() => tile.configure(button.isChecked() ? recipe : -1)));
 			button.getStyle().imageUp = new TextureRegionDrawable(output.icon(Cicon.medium));
-			button.update(run(() => button.setChecked(recipe == tile.entity.recipes)));
+			button.update(run(() => button.setChecked(recipe == tile.entity.recipe)));
 		},
 
 		addInputImage(input, table) {
