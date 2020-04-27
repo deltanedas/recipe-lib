@@ -17,7 +17,7 @@ You may extend any function in the definition except:
 
 All of these functions may return false to cancel the default operation (setting recipe, processing it, etc.)
 
-The configuration menu is a table of `<Output Item><Output Liquid> <space> <inputs>`
+The configuration menu is a table of `<outputs> <arrow> <inputs>`
 Any of the icons on one row will set the same recipe.
 
 # Functions, fields and types
@@ -49,36 +49,17 @@ Any of the icons on one row will set the same recipe.
 		It is required, but may be empty.
 	* `Input input`: An object containing any one of:
 		* `ItemStack[] items`
-		* `LiquidStack liquid`
+		* `LiquidStack[] liquids`
 		* `float power = 1`: 60 power/second by default
 		tile.entity.cons is created from this in `Block#configured`.
-		It is required and **will throw an exception** during configuration if it is not an object or empty.
+		It is required and **will throw an exception** during configuration if it is empty or not an object.
 
 	Effects are only created if the chance (if any) is above 0 and it is not `undefined` or `Fx.none`.
 	Like in JSON, you may define <type>Stacks with a String of "name/amount", or just "name" (not in JSON).
 	Additionally, if it just a <type> it will be treated as a stack of 1.
 
-See example code below for how it works:
-```js
-const recipeLib = require("recipe-lib/library");
-const factory = recipeLib.extend(GenericSmelter, GenericCrafter.GenericCrafterEntity, "scrap-factory", {
-	crafted(tile, i) {
-		const recipe = this.recipes[i];
-		print("Scrap Factory crafted " + (recipe.output.item || recipe.output.liquid));
-	}
-}, [ /* Recipes */
-// Scrap to slag mode
-{
-	input: {items: ["scrap/2"]},
-	output: {item: "coal"},
-	time: 30
-},
-// Scrap to slag mode
-{
-	input: {items: ["scrap"], power: 0.5}, // Make it 2x cheaper than a melter
-	output: {liquid: "slag"},
-	time: 15 // ... but 1.5x slower
-}
-]);
-```
-(set LOAD_EXAMPLE in main.js to `true` to run it)
+# Example
+The example mod is available at [DeltaNedas/recipe-lib-example](https://github.com/DeltaNedas/recipe-lib-example).
+
+# License
+Recipe lib is licensed under the GNU GPLv3 available in [COPYING](./COPYING).
