@@ -74,9 +74,36 @@ module.exports = {
 
 		valid(entity) {
 			const block = entity.block;
-			return entity.items !== null && entity.items.has(block.recipes[entity.recipe].input.items);
+			return entity.items !== null &&
+				entity.recipe != -1 &&
+				entity.items.has(block.recipes[entity.recipe].input.items);
 		}
 	},
+
+	// This one is a function, not an object!
+	ConsumePower: block => { return {
+		display(stats) {
+			// TODO add newline or something
+			var recipe;
+			for (var r in block.recipes) {
+				recipe = block.recipes[r];
+				stats.add(BlockStat.powerUse, (recipe.input.power || defaults.power) * 60, StatUnit.powerSecond);
+			}
+		},
+
+//		valid: entity => entity.power.status > 0,
+
+		requestedPower(entity) {
+			if (!entity.tile.entity) return 0;
+			var usage = 0;
+			if (entity.recipe > -1) {
+				usage = block.recipes[entity.recipe].input.power || defaults.power;
+			}
+
+			print("Req " + usage + " * " + Mathf.num(block.shouldConsume(entity.tile)) + " ( " + block.shouldConsume(entity.tile));
+			return usage * Mathf.num(block.shouldConsume(entity.tile));
+		}
+	}; },
 
 	// This one is a function, not an object!
 	ConsumeLiquids: block => { return {
@@ -122,15 +149,22 @@ module.exports = {
 		},
 
 		display(stats) {
-			// TODO: use entity somehow
-			stats.add(this.booster ? BlockStat.booster : BlockStat.input, Liquids.slag, 5 * this.timePeriod, this.timePeriod == 60);
+			// TODO: show all recipe liquids
+			var recipe, stack
+			for (var i in block.recipes) {
+				recipe = block.recipes[i];
+				for (var s in recipe.input.liquids || []) {
+					stack = recipe.input.liquids[s];
+					stats.add(this.booster ? BlockStat.booster : BlockStat.input, stack.liquid, stack.amount * recipe.time, recipe.time == 60);
+				}
+			}
 		}
 	}; },
 
 	TileEntity: {
-		getRecipe: () => this._recipe,
+		getRecipe: () => {return this._recipe},
 		setRecipe: set => {this._recipe = set;},
-		getProgress: () => this._progress,
+		getProgress: () => this._progress || {},
 		setProgress: set => {this._progress = set;},
 
 		read(stream) {
@@ -158,8 +192,9 @@ module.exports = {
 
 	Block: {
 		init() {
+			this.hasPower = false;
+			val.recipes(this);
 			this.super$init();
-			val.recipes(this, this._recipes);
 
 			this.recipeInputs = {};
 			var stack, input, recipe;
@@ -179,9 +214,9 @@ module.exports = {
 			if (this.onUpdate && !this.onUpdate(tile)) return;
 
 			const entity = tile.ent();
-			const recipe = this.recipes[entity.recipe];
-			if (recipe == -1) return;
+			if (entity.recipe == -1) return;
 
+			const recipe = this.recipes[entity.recipe];
 			const outputItem = recipe.output.item;
 			const outputLiquid = recipe.output.liquid;
 
@@ -280,7 +315,7 @@ module.exports = {
 				return;
 			}
 
-			if (recipe != -1 && recipe < 0 || recipe > this.recipes.length) {
+			if (recipe < -1 || recipe > this.recipes.length) {
 				throw new ValidateException("Invalid recipe for tile " + tile + " configured by " + player + ": " + recipe);
 			}
 			tile.entity.recipe = recipe;
@@ -293,21 +328,27 @@ module.exports = {
 			return tile.entity.items.get(item) < this.getMaximumAccepted(tile, item);
 		},
 
+		// Prevent bait n switching cheap recipes
+		placed(tile) {
+			if (Vars.net.client()) return;
+			this.super$placed(tile);
+			tile.entity.recipe = -1;
+			tile.entity.progress = {};
+			for (var i = 0; i < this.recipes.length; i++) {
+				tile.entity.progress[i] = 0;
+			}
+		},
+
+		shouldConsume(tile) {
+			return true;
+		},
+
 		getRecipes() {
 			return this._recipes;
 		},
 		setRecipes(set) {
 			this._recipes = set;
-		},
-
-		// Prevent bait n switching cheap recipes
-		placed(tile) {
-			if (Vars.net.client()) return;
-			this.super$placed(tile);
-			tile.entity._progress = {};
-			for (var i = 0; i < this._recipes.length; i++) {
-				tile.entity._progress[i] = 0;
-			}
 		}
 	}
 }
+

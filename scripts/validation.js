@@ -1,6 +1,5 @@
+const defaults = require("recipe-lib/defaults");
 var val = {};
-
-const defaultPower = 1.0;
 
 val.stack = (input, Type, Stack, contentType) => {
 	if (input !== undefined) {
@@ -34,6 +33,13 @@ val.array = (arr, Type, Stack, contentType) => {
 	}
 };
 
+val.effects = (recipe, effects) => {
+	for (var i in effects) {
+		const effect = effects[i] + "Effect";
+		recipe[effect] = recipe[effect] || Fx.none;
+	}
+};
+
 val.recipe = (block, recipes, i) => {
 	const err = "Recipe " + (i + 1) + " of " + block.name + " ";
 	const recipe = recipes[i];
@@ -46,7 +52,7 @@ val.recipe = (block, recipes, i) => {
 	if (typeof(output) !== "object") throw err + "has invalid output";
 
 	// Validate input
-	input.power = input.power || defaultPower;
+	input.power = input.power || defaults.power;
 	val.array(input.items, Item, ItemStack, ContentType.item);
 	val.array(input.liquids, Liquid, LiquidStack, ContentType.liquid);
 
@@ -61,17 +67,18 @@ val.recipe = (block, recipes, i) => {
 
 	// Make life easier
 	if (input.power > 0) block.hasPower = true;
-	if (input.items || recipe.output.item) block.hasItems = true;
-	if (input.liquids || recipe.output.liquid) block.hasLiquids = true;
+	if (input.items || output.item) block.hasItems = true;
+	if (input.liquids || output.liquid) block.hasLiquids = true;
+	if (output.liquid) block.outputsLiquid = true;
 
-	recipe.updateEffect = recipe.updateEffect || Fx.none;
-	recipe.craftEffect = recipe.craftEffect || Fx.none;
+	val.effects(recipe, ["update", "craft"]);
 	recipe.updateChance = recipe.updateChance || 0.04;
 };
 
-val.recipes = (block, recipes) => {
-	if (recipes === undefined || recipes.length == 0) {
-		throw new IllegalArgumentException("There must be at least 1 recipe for " + block.name);
+val.recipes = block => {
+	const recipes = block.recipes;
+	if (!recipes || recipes.length == 0) {
+		throw "There must be at least 1 recipe for " + block.name;
 	}
 
 	for (var i in recipes) {

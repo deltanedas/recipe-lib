@@ -25,11 +25,10 @@ Any of the icons on one row will set the same recipe.
 ## `recipeLib#extend(Base extends Block, Entity extends TileEntity String name, Object def, Recipe[] recipes)`
 	Like vanilla `extendContent(Base, name, def)`, but it also adds the multi recipe logic.
 	If `def` is not `undefined` its functions are added **after** the base definition.
-	It will validate the recipes array which must contain at least 1 recipe.
+	It will validate the recipes array, which must contain at least 1 recipe, at init time.
 
 ## `recipes`
 	In the returned `Block` from extend(), it is an array of validated Recipes.
-	**Set it in the `extend` function or you will need to validate it yourself!**
 
 ## `Block#crafted(Tile tile, int recipe)`
 	Called when a recipe is crafted.
